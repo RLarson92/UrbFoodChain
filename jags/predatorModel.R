@@ -38,6 +38,7 @@ model{
   for(z in 1:nspec){
     p0[z] ~ dnorm(0, 0.25)
     phi[z] ~ dnorm(0, 0.25)
+    # because seaon is dummy-coded, we have to do some fudging with the priors here
     for (tmpk in 1:3){
       tmp_p[z,tmpk] ~ dnorm(0, 0.25)
     }
