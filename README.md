@@ -1,5 +1,4 @@
-# UrbFoodChain
-# UrbanSmammalCommunity
+# UrbanFoodChain
 A repository that contains the data and code for:
 
 Larson, R.N., M. Fidino, and H. A. Sander. Urban deer mouse abundance is more strongly correlated with predator occupancy than land cover. *Landscape and Urban Planning*. (In review)
