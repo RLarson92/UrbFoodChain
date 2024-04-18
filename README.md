@@ -48,12 +48,11 @@ Data in this file take the following format:
 
 | Column    | Type    | Description                                                                                                        |
 | --------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
-| Site  | string | The name of the camera site (matches name in the predatorOccu data table).                                                                           |
-| Imperv    | numeric | The average percent cover of impervious surfaces in the 500m buffer                                                                     |
-| Turfgrass     | numeric | The percent cover of turfgrass (NLCD categories "Developed, Open Space"; and "Developed, Low Intensity" combined) in the 500m buffer |
+| Site  | string | The name of the camera site (matches name in the predatorOccu data table).|
+| Imperv    | numeric | The average percent cover of impervious surfaces (NLCD categories "Developed, Medium Intensity"; and "Developed, High Intensity" combined) in the 500m buffer |
 | Forest  | numeric | The percent cover of forest (NLCD categories "Coniferous Forest", "Deciduous Forest", "Mixed Forest", and "Woody Wetlands" combined) in the 500m buffer |
-| Prairie  | numeric | The percent cover of grasslands (NLCD categories "Herbacous Vegetation", "Hay/Pasture", and "Emergent Herbacous Wetlands" combined) in the 500m buffer                                                                      |
-| Crop   | numeric | The percent cover of crops (NLCD category "Cultivated Crops") in the 500m buffer |
+| Prairie  | numeric | The percent cover of grasslands (NLCD categories "Herbacous/Grassland", "Hay/Pasture", and "Emergent Herbacous Wetland" combined) in the 500m buffer |
+| Crop   | numeric | The percent cover of crops (NLCD category "Cultivated Cropland") in the 500m buffer |
 | ResUnits | numeric | The number of residential housing units in the 500m buffer |
 | Dist_to_Wat    | numeric | The distance from the camera location to the nearest water body (stream, lake, or river) in meters |
 
@@ -68,7 +67,7 @@ Data in this file take the following format:
 | humanMod  | numeric | Sum of the 'imperv' and 'turfgrass' columns                                                                        |
 | imperv    | numeric | The average percent cover of impervious surfaces on each plot |
 | turfgrass | numeric | The average percent cover of turfgrass on each plot |
-| contag    | numeric | The contagion index of each plot (i.e., a measure of habitat fragmentation). These values are copied from the output of the 'connectivity.R' script in the 'landscapes' folder below |
+| contag    | numeric | The contagion index of each plot (i.e., a measure of habitat fragmentation). These values are copied from the output of the `connectivity.R` script in the `landscapes` folder below |
 
 <h3>data/obsVars</h3>
 
@@ -91,21 +90,29 @@ All files follow this format, with the jDate file as an example. Just sub out 'j
 | ... | numeric | ...                                                |
 | jDate_y_x  | numeric | The Julian Date of the x night of trapping during y sampling period                                                 |
 
-<h3>JAGS</h3>
-
-There is 1 file in this folder, `./JAGS/dynamicCommunityModel.R`, which is the Bayesian community abundance model code to pass to JAGS.
-
 <h3>functions</h3>
 
-There are 4 files in this folder, all utility functions that automate or declutter some of the R code
+There are 6 files in this folder, all utility functions that automate or declutter some of the R code
 
 **.functions/logit2prob.R:** Function script to convert a logit value to a probability
+
+**./functions/pred_inits.R:** Script that stores the initial values to pass to the multi-species predator occupancy model.
+
+**./functions/rod_inits.R:** Script that stores the initial values to pass to the mouse abundance model.
 
 **.functions/split_mcmc.R:** Function to split a model's MCMC matrix into a list of named objects, one for every parameter. Makes graphing results much easier. Credit for this code goes to [@mfidino](https://github.com/mfidino) [(see his blog post here)](https://masonfidino.com/split_mcmc/)
 
 **.functions/wide_to_stacked.R:** Function to convert a wide-format data frame (i.e., one site per row with one column for each observation) into a stacked format data frame (one observation per row, with sites/seasons/etc. "stacked" on top of each other). Modified from code in [a vignette for the `umbs` R package](https://cran.r-project.org/web/packages/ubms/vignettes/random-effects.html).
 
 **.functions/wideObs_to_stacked.R:** Function script to convert observation-level covariate data from a wide format to a 'stacked' format. Different from `wide_to_stacked.R` in that it does not add a 'Species' column to the resulting dataframe. Modified from code in [a vignette for the `umbs` R package](https://cran.r-project.org/web/packages/ubms/vignettes/random-effects.html).
+
+<h3>jags</h3>
+
+There are 2 files in this folder, each with code to pass to JAGS to run the models. 
+
+**./jags/mouseModel.R:** The Bayesian population abundance model code to pass to JAGS.
+
+**./jags/predatorModel.R:** The Bayesian multispecies occupancy model code to pass to JAGS.
 
 <h3>landscapes</h3>
 
