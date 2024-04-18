@@ -101,7 +101,7 @@ There are 4 files in this folder, all utility functions that automate or declutt
 
 **.functions/logit2prob.R:** Function script to convert a logit value to a probability
 
-**.functions/split_mcmc.R:** Function to split a model's MCMC matrix into a list of named objects, one for every parameter. Makes graphing results much easier. Credit for this code goes to @mfidino [(see his blog post here)](masonfidino.com/split_mcmc/)
+**.functions/split_mcmc.R:** Function to split a model's MCMC matrix into a list of named objects, one for every parameter. Makes graphing results much easier. Credit for this code goes to [@mfidino](github.com/mfidino) [(see his blog post here)](masonfidino.com/split_mcmc/)
 
 **.functions/wide_to_stacked.R:** Function to convert a wide-format data frame (i.e., one site per row with one column for each observation) into a stacked format data frame (one observation per row, with sites/seasons/etc. "stacked" on top of each other). Modified from code in [a vignette for the `umbs` R package](github.com/kenkellner/umbs/blob/master/vignettes/random-effects.Rmd).
 
