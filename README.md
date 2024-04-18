@@ -68,7 +68,7 @@ Data in this file take the following format:
 | humanMod  | numeric | Sum of the 'imperv' and 'turfgrass' columns                                                                        |
 | imperv    | numeric | The average percent cover of impervious surfaces on each plot |
 | turfgrass | numeric | The average percent cover of turfgrass on each plot |
-| contag    | numeric | The contagion index of each plot (i.e., a measure of habitat fragmentation). |
+| contag    | numeric | The contagion index of each plot (i.e., a measure of habitat fragmentation). These values are copied from the output of the 'connectivity.R' script in the 'landscapes' folder below |
 
 <h3>data/obsVars</h3>
 
