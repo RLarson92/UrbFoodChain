@@ -89,7 +89,7 @@ All files follow this format, with the jDate file as an example. Just sub out 'j
 | jDate_SP21_3 | numeric | The Julian Date of the 3rd night of trapping during spring 2021                                                  |
 | jDate_SU21_1 | numeric | The Julian Date of the 1st night of trapping during summer 2021                                                  |
 | ... | numeric | ...                                                |
-| jDate_y_x  | numeric | The Julian Date of the x night of trapping during y season                                                 |
+| jDate_y_x  | numeric | The Julian Date of the x night of trapping during y sampling period                                                 |
 
 <h3>JAGS</h3>
 
