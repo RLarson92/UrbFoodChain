@@ -57,6 +57,19 @@ Data in this file take the following format:
 | ResUnits | numeric | The number of residential housing units in the 500m buffer |
 | Dist_to_Wat    | numeric | The distance from the camera location to the nearest water body (stream, lake, or river) in meters |
 
+**./data/siteCovs_Rod.csv:** The site covariates for each of the 45 small mammal trapping plots.
+
+| Column    | Type    | Description                                                                                                        |
+| --------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
+| site  | numeric | The identity of each trapping plot.                                                                           |
+| canopy    | numeric | The average tree canopy closure on each plot                                                                       |
+| shrub     | numeric | The average percent cover of vegetation between 76 - 500 cm in height on each plot |
+| tallHerb  | numeric | The average percent cover of vegetation between 0 - 75 cm in height on each plot |
+| humanMod  | numeric | Sum of the 'imperv' and 'turfgrass' columns                                                                        |
+| imperv    | numeric | The average percent cover of impervious surfaces on each plot |
+| turfgrass | numeric | The average percent cover of turfgrass on each plot |
+| contag    | numeric | The contagion index of each plot (i.e., a measure of habitat fragmentation). |
+
 <h3>data/obsVars</h3>
 
 There are 3 files in this subfolder
