@@ -103,9 +103,9 @@ There are 4 files in this folder, all utility functions that automate or declutt
 
 **.functions/split_mcmc.R:** Function to split a model's MCMC matrix into a list of named objects, one for every parameter. Makes graphing results much easier. Credit for this code goes to [@mfidino](https://github.com/mfidino) [(see his blog post here)](https://masonfidino.com/split_mcmc/)
 
-**.functions/wide_to_stacked.R:** Function to convert a wide-format data frame (i.e., one site per row with one column for each observation) into a stacked format data frame (one observation per row, with sites/seasons/etc. "stacked" on top of each other). Modified from code in [a vignette for the `umbs` R package](https://github.com/kenkellner/umbs/blob/master/vignettes/random-effects.Rmd).
+**.functions/wide_to_stacked.R:** Function to convert a wide-format data frame (i.e., one site per row with one column for each observation) into a stacked format data frame (one observation per row, with sites/seasons/etc. "stacked" on top of each other). Modified from code in [a vignette for the `umbs` R package](https://cran.r-project.org/web/packages/ubms/vignettes/random-effects.html).
 
-**.functions/wideObs_to_stacked.R:** Function script to convert observation-level covariate data from a wide format to a 'stacked' format. Different from `wide_to_stacked.R` in that it does not add a 'Species' column to the resulting dataframe. Modified from code in [a vignette for the `umbs` R package](https://github.com/kenkellner/umbs/blob/master/vignettes/random-effects.Rmd).
+**.functions/wideObs_to_stacked.R:** Function script to convert observation-level covariate data from a wide format to a 'stacked' format. Different from `wide_to_stacked.R` in that it does not add a 'Species' column to the resulting dataframe. Modified from code in [a vignette for the `umbs` R package](https://cran.r-project.org/web/packages/ubms/vignettes/random-effects.html).
 
 <h3>landscapes</h3>
 
