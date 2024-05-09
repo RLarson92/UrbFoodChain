@@ -1,3 +1,4 @@
+library(tidyr)
 
 # load functions used to clean data
 functions_to_load <- list.files(
@@ -9,12 +10,11 @@ for(fn in functions_to_load){
 }
 # read in the mouse count dataset
 df <- read.csv("./data/PERO.csv")
-dets <- df[ ,2:19] # 2:19 for full dataset, 2:7 for 2-season test
+dets <- df[ ,2:19] # 2:19 for full dataset, 2:7 for 2-season test of code
 # stack the data, long-style
 stack <- wide_to_stacked(dets, 3)
 # stack the replicates (nights) on top of each other and order the datasheet. 
 # Data should be in order by season then site
-library(tidyr)
 n_long <- gather(stack, key = "night", value = "N", night1:night3, factor_key = TRUE)
 n_long <- n_long[order(
   n_long[,"Season"],
@@ -43,13 +43,22 @@ rm(dets, stack)
 
 # Site covariates are a 2-D array [sites, covariates]
 site_covs <- read.csv("./data/siteCovs_Rod.csv", stringsAsFactors = FALSE)
-site_covs$site <- as.numeric(as.factor(site_covs$site))
-site_covs$cat.sd <- abs(site_covs$cat.sd)
-site_covs$fox.sd <- abs(site_covs$fox.sd)
-site_covs$coyote.sd <- abs(site_covs$coyote.sd)
-site_covs$mink.sd <- abs(site_covs$mink.sd)
-cor(site_covs)
-covMatrix <- as.matrix(site_covs)
+siteCovs <- scale(site_covs[ ,2:5])
+# these variables are co-linear, so we'll do a PCA to collapse them
+pca <- princomp(siteCovs)
+pca$loadings
+# PC1: more + = canopy/herb/shrub; more - = humanMod
+# pull in modeled predator occupancy (this code assumes you have run
+# the 'Predator_Models.R" code first
+occuPred <- read.csv(./data/modeledOccu_Predators.csv", stringsAsFactors = FALSE)
+occuPred$cat.sd <- abs(site_covs$cat.sd)
+occuPred$fox.sd <- abs(site_covs$fox.sd)
+# let's make our covariate data.frame
+covs_for_model <- cbind.data.frame("PC1" = pca$scores[ ,1],
+                                   "contag" = scale(site_covs$contag),
+                                   "site" = site_covs[ ,1])
+covs_for_model$site <- as.numeric(as.factor(covs_for_model$site))
+covMatrix <- as.matrix(covs_for_model)
 rm(site_covs)
 
 # Observation covariates are 3-D array [sites, nights, seasons]
