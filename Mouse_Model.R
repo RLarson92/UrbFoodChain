@@ -48,16 +48,30 @@ siteCovs <- scale(site_covs[ ,2:5])
 pca <- princomp(siteCovs)
 pca$loadings
 # PC1: more + = canopy/herb/shrub; more - = humanMod
+# pull in contagion indecies & join. assumes you have run the 'Connectivity.R'
+# code in the 'landscapes' folder first
+contag <- read.csv("./data/contag.csv", stringsAsFactors = FALSE)
 # pull in modeled predator occupancy (this code assumes you have run
 # the 'Predator_Models.R" code first
 occuPred <- read.csv(./data/modeledOccu_Predators.csv", stringsAsFactors = FALSE)
 occuPred$cat.sd <- abs(site_covs$cat.sd)
 occuPred$fox.sd <- abs(site_covs$fox.sd)
 # let's make our covariate data.frame
-covs_for_model <- cbind.data.frame("PC1" = pca$scores[ ,1],
-                                   "contag" = scale(site_covs$contag),
-                                   "site" = site_covs[ ,1])
+covs_for_model <- cbind.data.frame("PC1" = pca$scores[,1],
+                                   "trapLine" = site_covs[,1],
+                                   "camera" = site_covs[,2])
+covs_for_model <- left_join(contag, covs_for_model, by="trapLine")
+covs_for_model <- left_join(occuPred, covs_for_model, by="camera")
+covs_for_model <- covs_for_model %>%
+  rename(
+    contag = value,
+    site = trapLine
+  )
 covs_for_model$site <- as.numeric(as.factor(covs_for_model$site))
+covs_for_model <- select(covs_for_model, site, PC1, contag, cat.mu, cat.sd, fox.mu, fox.sd)
+covs_for_model <- covs_for_model[order(
+  covs_for_model[,"site"]
+),]
 covMatrix <- as.matrix(covs_for_model)
 rm(site_covs)
 
