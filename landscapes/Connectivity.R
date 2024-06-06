@@ -3,7 +3,7 @@
 #                                 Code for calculating contagion index values                             #
 #                                          using `landscapemetrics`                                       #
 #                                                                                                         #
-#                                         Last edited: 23 May 2024                                        #
+#                                         Last edited: 6 Jun 2024                                         #
 #                                                                                                         #
 ###########################################################################################################
 # You'll need to load the 'raster' and 'landscapemetrics' packages to perform this analysis
@@ -31,9 +31,12 @@ for(i in 1:length(allRasters)){
 
 # writing the results into that blank list and adding the site name
 results_contag <- rlist::list.rbind(resultsList_contag)
-results_contag$site <- rasterList
+results_contag$site <- c(1,11,111,117,12,120,122,123,124,135,136,140,142,143,147,148,161,162,17,
+                         205,214,216,221,222,223,225,227,229,23,245,246,250,255,256,260,264,269,274,288,289,295,
+                         8,83,88,90)
 results_contag <- results_contag[,6:7]
 results_contag$value[is.na(results_contag$value)] <- 0
+colnames(results_contag) <- c("contag","site")
 
 # writing the results to a .csv
 write.csv(results_contag, "./data/contag.csv", row.names = FALSE)
