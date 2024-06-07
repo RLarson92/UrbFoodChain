@@ -1,3 +1,15 @@
+#########################################################
+#                                                       #
+#           Dynamic Mouse Abundance Model               #
+#                                                       #
+#           Last Updated: 6 June 2024                   #
+#                                                       #
+#########################################################
+# this model is a population abundance model with fully
+# modeled 'recruitment' (births + immigrants) and 
+# 'survival' (1-[deaths + emigrants])
+
+#### Data Cleaning & Preparation ####
 library(tidyr)
 
 # load functions used to clean data
@@ -48,7 +60,7 @@ siteCovs <- scale(site_covs[ ,2:5])
 pca <- princomp(siteCovs)
 pca$loadings
 # PC1: more + = canopy/herb/shrub; more - = humanMod
-# pull in contagion indecies & join. assumes you have run the 'Connectivity.R'
+# pull in contagion indices & join. assumes you have run the 'Connectivity.R'
 # code in the 'landscapes' folder first
 contag <- read.csv("./data/contag.csv", stringsAsFactors = FALSE)
 # pull in modeled predator occupancy (this code assumes you have run
@@ -58,9 +70,9 @@ occuPred$cat.sd <- abs(site_covs$cat.sd)
 occuPred$fox.sd <- abs(site_covs$fox.sd)
 # let's make our covariate data.frame
 covs_for_model <- cbind.data.frame("PC1" = pca$scores[,1],
-                                   "trapLine" = site_covs[,1],
+                                   "site" = site_covs[,1],
                                    "camera" = site_covs[,2])
-covs_for_model <- left_join(contag, covs_for_model, by="trapLine")
+covs_for_model <- left_join(contag, covs_for_model, by="site")
 covs_for_model <- left_join(occuPred, covs_for_model, by="camera")
 covs_for_model <- covs_for_model %>%
   rename(
