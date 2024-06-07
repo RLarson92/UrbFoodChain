@@ -2,7 +2,7 @@
 #                                                       #
 #           Dynamic Mouse Abundance Model               #
 #                                                       #
-#           Last Updated: 6 June 2024                   #
+#           Last Updated: 7 June 2024                   #
 #                                                       #
 #########################################################
 # this model is a population abundance model with fully
@@ -11,7 +11,7 @@
 
 #### Data Cleaning & Preparation ####
 library(tidyr)
-
+library(dplyr)
 # load functions used to clean data
 functions_to_load <- list.files(
   "./functions/",
@@ -55,7 +55,7 @@ rm(dets, stack)
 
 # Site covariates are a 2-D array [sites, covariates]
 site_covs <- read.csv("./data/siteCovs_Rod.csv", stringsAsFactors = FALSE)
-siteCovs <- scale(site_covs[ ,2:5])
+siteCovs <- scale(site_covs[ ,3:6])
 # these variables are co-linear, so we'll do a PCA to collapse them
 pca <- princomp(siteCovs)
 pca$loadings
@@ -64,23 +64,20 @@ pca$loadings
 # code in the 'landscapes' folder first
 contag <- read.csv("./data/contag.csv", stringsAsFactors = FALSE)
 # pull in modeled predator occupancy (this code assumes you have run
-# the 'Predator_Models.R" code first
+# the 'Predator_Models.R" code first)
 occuPred <- read.csv(./data/modeledOccu_Predators.csv", stringsAsFactors = FALSE)
-occuPred$cat.sd <- abs(site_covs$cat.sd)
-occuPred$fox.sd <- abs(site_covs$fox.sd)
+Pred <- occuPred[,2:4]
+Pred <- cbind(Pred, occuPred[,7:8])
 # let's make our covariate data.frame
 covs_for_model <- cbind.data.frame("PC1" = pca$scores[,1],
                                    "site" = site_covs[,1],
                                    "camera" = site_covs[,2])
 covs_for_model <- left_join(contag, covs_for_model, by="site")
-covs_for_model <- left_join(occuPred, covs_for_model, by="camera")
-covs_for_model <- covs_for_model %>%
-  rename(
-    contag = value,
-    site = trapLine
-  )
+covs_for_model$contag <- scale(covs_for_model$contag)
+covs_for_model <- left_join(Pred, covs_for_model, by="camera")
+covs_for_model <- drop_na(covs_for_model)
+covs_for_model <- covs_for_model[,-1]
 covs_for_model$site <- as.numeric(as.factor(covs_for_model$site))
-covs_for_model <- select(covs_for_model, site, PC1, contag, cat.mu, cat.sd, fox.mu, fox.sd)
 covs_for_model <- covs_for_model[order(
   covs_for_model[,"site"]
 ),]
@@ -115,31 +112,31 @@ for(i in 1:nrow(moon_long)){
 }
 rm(moon1, moonStack, moon_long)
 
-jDate <- read.csv("./data/obsVars/jDate.csv", stringsAsFactors = FALSE)
-jDate1 <- as.data.frame(jDate[,2:19]) # to 19 for full dataset, to 10 for test
-jDateStack <- wideObs_to_stacked(jDate1, 3) 
-jDate_long <- gather(jDateStack, key = "night", value = "jDate", night1:night3, factor_key = TRUE)
-jDate_long$jDate <- as.numeric(scale(jDate_long$jDate))
-jDate_long <- jDate_long[order(
-  jDate_long[,"Season"],
-  jDate_long[,"Site"]),]
-jDate_long$night <- as.numeric(jDate_long$night)
-jDate_long$Site <- as.numeric(as.factor(jDate_long$Site))
-jDateArray <- array(
+Date <- read.csv("./UrbFoodChain/data/obsVars/Date.csv", stringsAsFactors = FALSE)
+Date1 <- as.data.frame(Date[,2:19]) # to 19 for full dataset, to 10 for test
+DateStack <- wideObs_to_stacked(Date1, 3) 
+Date_long <- gather(DateStack, key = "night", value = "Date", night1:night3, factor_key = TRUE)
+Date_long$Date <- as.numeric(scale(Date_long$Date))
+Date_long <- Date_long[order(
+  Date_long[,"Season"],
+  Date_long[,"Site"]),]
+Date_long$night <- as.numeric(Date_long$night)
+Date_long$Site <- as.numeric(as.factor(Date_long$Site))
+DateArray <- array(
   NA,
-  dim = c(max(jDate_long$Site),
-          max(jDate_long$night),
-          max(jDate_long$Season)
+  dim = c(max(Date_long$Site),
+          max(Date_long$night),
+          max(Date_long$Season)
   )
 )
-for(i in 1:nrow(jDate_long)){
-  jDateArray[
-    jDate_long$Site[i],
-    jDate_long$night[i],
-    jDate_long$Season[i]
-  ] <- jDate_long$jDate[i]
+for(i in 1:nrow(Date_long)){
+  DateArray[
+    Date_long$Site[i],
+    Date_long$night[i],
+    Date_long$Season[i]
+  ] <- Date_long$Date[i]
 }
-rm(jDate1, jDateStack, jDate_long, jDate)
+rm(Date1, DateStack, Date_long, Date)
 
 effort <- read.csv("./data/obsVars/Effort.csv", stringsAsFactors = FALSE)
 effort1 <- as.data.frame(effort[,2:19]) # to 19 for full dataset, to 10 for test
@@ -167,6 +164,8 @@ for(i in 1:nrow(effort_long)){
 }
 rm(effort1, effortStack, effort_long, effort, moon)
 
+# finally, coding up a season dummy variable to account for increasing
+# mouse populaions as young are born throughout the year
 seasonData <- as.factor(c("spring","summer"
                           ,"fall","spring","summer","fall"
                           ))
@@ -175,29 +174,29 @@ seasonData <- as.factor(c("spring","summer"
 # Data list for model
 data_list <- list(
   nsite = max(n_long$Site),
-  PC1 = covMatrix[,2],
-  contag = covMatrix[,3],
-  cat.mu = covMatrix[,4],
-  cat.sd = covMatrix[,5],
-  fox.mu = covMatrix[,8],
-  fox.sd = covMatrix[,9],
+  PC1 = covMatrix[,7],
+  contag = covMatrix[,5],
+  cat.mu = covMatrix[,1],
+  cat.sd = covMatrix[,2],
+  fox.mu = covMatrix[,3],
+  fox.sd = covMatrix[,4],
   nNight = max(n_long$night),
   moon = moonArray,
   jDate = jDateArray,
   effort = effortArray,
   y = my_array, 
-  nSP = max(n_long$Season),
+  nSP = max(n_long$Season), #nSP stands for 'number of sample periods' to distinguish it from 'season' representing meteorological season
   season = seasonData,
   nseason = 3
 )
 save(data_list, file = "./results/data_list.Rdata") #not really a 'result' but saving there for later use
 
 # initial values for N should be maximum possible counts
-N_init = array(10, dim = c(data_list$nsite, data_list$nseason))
+N_init = array(10, dim = c(data_list$nsite, data_list$nSP))
 # set to NA for all seasons t>1 because we cannot know this (needs to be specified by R + S)
 N_init[,2:6] <- NA
 # initial values for recruits can also be set to maximum possible counts
-R_init = array(10, dim = c(data_list$nsite, data_list$nseason))
+R_init = array(10, dim = c(data_list$nsite, data_list$nSP))
 # providing null values for t = 1 (i.e., no recruits yet)
 R_init[,1] <- NA
 
@@ -221,7 +220,7 @@ my_mod <- runjags::run.jags(
   thin = 2,
   method = "parallel"
 )
-system("say Calculations Complete.")
+# save the output for later & print the summary to check for convergence, etc.
 saveRDS(my_mod, "./results/rod_model.RDS")
 summary(my_mod, vars = c("beta0","beta1",
                          "phi0", "phi1", "phi2", "phi3", "phi4", "phi5", "phi6",
