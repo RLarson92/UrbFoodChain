@@ -45,7 +45,7 @@ model{
     log(lambda[j,1]) <- beta0 + beta1*PC1[j]
     # Observation State (Captures)
     for (k in 1:nNight) {
-      logit(p[j,k,1]) <- alpha0 + alpha1*moon[j,k,1] + alpha2*jDate[j,k,1] + alpha3*effort[j,k,1]
+      logit(p[j,k,1]) <- alpha0 + alpha1*moon[j,k,1] + alpha2*Date[j,k,1] + alpha3*effort[j,k,1]
       y[j,k,1] ~ dbin(p[j,k,1], N[j,1])
     }
     ## Season > 1
@@ -59,7 +59,7 @@ model{
       log(gamma[j,t]) <- gamma0 + gamma1*contag[j] + gamma2[season[t]]
       # Observation State
       for (k in 1:nNight) {
-        logit(p[j,k,t]) <- alpha0 + alpha1*moon[j,k,t] + alpha2*jDate[j,k,t] + alpha3*effort[j,k,t]
+        logit(p[j,k,t]) <- alpha0 + alpha1*moon[j,k,t] + alpha2*Date[j,k,t] + alpha3*effort[j,k,t]
         y[j,k,t] ~ dbin(p[j,k,t], N[j,t])
       }
     }
