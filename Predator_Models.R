@@ -1,4 +1,17 @@
+################################################################################
+#                                                                              #
+#    Multi-Species Autologistic Occupancy Model for Determining Average        #
+#    Site Occupancy of Carnivores in Iowa City, IA                             #
+#                                                                              #
+#    Last Updated: 07 Jun 2024                                                 #
+#                                                                              #
+################################################################################
+# This script prepares the data and runs an autologistic multi-species occupancy
+# model for generating estimates of average site occupancy probability for
+# domestic cats, coyotes, red fox, and American mink to use in the model of
+# deer mouse abundance
 
+#### Load & Clean Data for Model ####
 # load functions used to clean data
 functions_to_load <- list.files(
   "./functions/",
@@ -7,7 +20,7 @@ functions_to_load <- list.files(
 for(fn in functions_to_load){
   source(fn)
 }
-# read in the full predator dataset with both species
+# read in the full predator dataset with all species
 dat <- read.csv("./data/predatorOccu.csv")
 # converting the site names & species into unique numbers
 dat$Site <- as.numeric(as.factor(dat$Site))
@@ -38,22 +51,7 @@ for(i in 1:nrow(dat)){
   ] <- dat$J[i]
 }
 
-# reading in detection covariates & converting sites to numeric factors
-# obsCovs <- read.csv("./data/obsCovs_Pred.csv")
-# obsCovs <- subset(obsCovs, Site!="A09-KEN2")
-# obsCovs$Site <- as.numeric(as.factor(obsCovs$Site))
-# # turning 'season' (lower case meaning time of year of sampling [fall, spring, etc]) into a 
-# # factor w/ 4 levels
-# obsCovs$season <- as.factor(obsCovs$season)
-# str(obsCovs)
-# 
-# season <- matrix(data = NA, nrow = max(obsCovs$Site), ncol = max(obsCovs$Season))
-# for(i in 1:nrow(obsCovs)){
-#   season[
-#     obsCovs$Site[i],
-#     obsCovs$Season[i]
-#   ] <- obsCovs$season[i]
-# }
+# creating a dummy 'season' variable for the detection submodel
 seasonData <- as.factor(c("fall","winter","spring","summer",
                           "fall","winter","spring","summer",
                           "fall","winter","spring","summer",
@@ -126,7 +124,7 @@ pred_mod <- runjags::run.jags(
   thin = 2,
   method = "parallel"
 )
-system("say Calculations Complete.")
+# Save output for later use & print model summary to check convergence, etc.
 saveRDS(pred_mod, "./results/pred_model.RDS")
 summary(pred_mod,
         vars = c("a0", "a1", "a2", "b0", "b1", "b2", "c0", "c1", "d0", "d1", "d2",
@@ -160,6 +158,8 @@ mc_sub <- mc[sample(1:nrow(mc), 10000), ]
 mc <- split_mcmc(mc_sub)
 rm(mc_sub)
 
+# the script below uses the model output to predict which occupancy state (e.g., 
+# cats and coyotes present, only fox present, etc) of each site at the 1st timestep.
 pred_psi <- array(
   NA,
   dim = c(
@@ -195,7 +195,9 @@ pred_psi[,12] <- exp(mc$a0[,1] + mc$b0[,1] + mc$c0[,1] + mc$d0[,1] +
                        mc$e0[,1] + mc$g0[,1] + mc$h0[,1] + mc$l0[,1] + mc$m0[,1] + mc$n0[,1])
 # convert to probability
 prob_psi <- t(apply(pred_psi, 1, function(x) x/sum(x)))
-
+# the following code does the same thing as the above, but with the addition of the autologistic
+# term to account for temporal correlation (thus calculating occupancy state in the subsequent
+# timesteps
 pred_psi_auto <- array(
   NA,
   dim = c(
@@ -222,11 +224,10 @@ pred_psi_auto[,12] <- exp(mc$a0[,1] + mc$phi[,1] + mc$b0[,1] + mc$phi[,2] + mc$c
 # convert to probability
 prob_psi_auto <- t(apply(pred_psi, 1, function(x) x/sum(x)))
 
-# calculating average psi
+# calculating average psi (i.e., average occupancy probabilty across time)
 trueProb <- prob_psi / (
   prob_psi + (1 - prob_psi_auto)
 )
-
 trueProb <- apply(
   trueProb,
   2,
@@ -234,12 +235,16 @@ trueProb <- apply(
   probs = c(0.025,0.25,0.5,0.75,0.975)
 )
 #### Marginal Occupancy ####
+# calculates the marginal occupancy probability (i.e., irrespective of the occupancy of any other species) for each
+# species in the model
 Cat <- trueProb[,2] + trueProb[,6] + trueProb[,7] + trueProb[,8] + trueProb[,12]
 Coyote <- trueProb[,3] + trueProb[,6] + trueProb[,9] + trueProb[,10] + trueProb[,12]
 Fox <- trueProb[,4] + trueProb[,7] + trueProb[,9] + trueProb[,11] + trueProb[,12]
 Mink <- trueProb[,5] + trueProb[,8] + trueProb[,10] + trueProb[,11] + trueProb[,12]
 #### Conditional Occupancies ####
+# calculate the probability of the small-case species given the presence/absence of the Big Case species
 catCoyote <- (trueProb[,6] + trueProb[,12]) / (trueProb[,6] + trueProb[,12] + trueProb[,3] + trueProb[,9] + trueProb[,10])
+# then we compare modeled co-occurrence (smallBig) with co-occurrence if the species occurred together randomly (small*Big)
 catCoyote
 Cat*Coyote # cats & coyotes occur together MORE than expected
 # more likely to co-occur as imperv increases
@@ -253,7 +258,9 @@ minkCoyote <- (trueProb[,10] + trueProb[,12]) / (trueProb[,10] + trueProb[,12] +
 minkCoyote
 Mink*Coyote # mink & coyotes occur together AS EXPECTED
 
-#### Average Occupancy by Site
+#### Average Occupancy by Site ####
+# we're going to calculate the average occupancy probability through time at each site for each species
+# first we generate a blank array to later hold the predictions
 x_array <- as.array(mc$x)
 pred_Site <- array(
   NA,
@@ -263,6 +270,9 @@ pred_Site <- array(
     max(data_list$nspec)
   )
 )
+# then we take the predicted occupancy states (1,2,3,4,etc.) and convert them to a '0' if the state
+# does not include our species of interest (e.g., for cats, occupancy states 3 [fox only] and
+# 4 [mink only] do not include cats) and a '1' if it does
 # cat marginal occupancy
 cat <- replace(x_array, x_array == 12, 0)
 cat <- replace(cat, cat == 11, 0)
@@ -319,8 +329,7 @@ mink <- replace(mink, mink == 10, 1)
 mink <- replace(mink, mink == 11, 1)
 pred_Site[1,,4] <- apply(mink, 2, mean)
 pred_Site[2,,4] <- apply(mink, 2, sd)
-# convert from sd to var and transpose dataframe
-# pred_Site <- apply(pred_Site, 2, function(x) x^2)
+# transpose dataframe
 c <- pred_Site[,,1]
 c <- t(c)
 y <- pred_Site[,,2]
@@ -329,12 +338,13 @@ x <- pred_Site[,,3]
 x <- t(x)
 m <- pred_Site[,,4]
 m <- t(m)
-occuSitePreds <- cbind(c,y,x,m)
-colnames(occuSitePreds) <- c("cat.mu","cat.sd","coyote.mu","coyote.sd",
+# merge all of them together and save as a dataframe for later use
+occuSitePreds <- cbind(siteCovs$Site,c,y,x,m)
+colnames(occuSitePreds) <- c("camera","cat.mu","cat.sd","coyote.mu","coyote.sd",
                              "fox.mu","fox.sd","mink.mu","mink.sd")
 write.csv(occuSitePreds, "./data/modeledOccu_Predators.csv")
 
-#### detection probability for cats ####
+#### Additional Calculations (Cat Detection by Season, Coyote/Fox Co-occurrence & Impervious Relationship ####
 # Generating a matrix that will contain values for predicting. This includes our sequence of
 # contag values, and adding a row of 1's for the intercept & other predictor values
 predV <- c(1,2,3,4)
