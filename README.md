@@ -73,22 +73,22 @@ Data in this file take the following format:
 
 There are 3 files in this subfolder
 
-**./data/obsVars/jDate.csv:** The Julian date of each night of small mammal trapping
+**./data/obsVars/Date.csv:** The ordinal date (i.e., day of year) of each night of small mammal trapping
 
 **./data/obsVars/Moon.csv:** The moon illumination (proportion full) on each night of trapping
 
 **./data/obsVars/Effort.csv:** The number of available traps (i.e., traps that remained undisturbed) on each night of trapping
 
-All files follow this format, with the jDate file as an example. Just sub out 'jDate' for 'moon' with the moon illumination data and 'effort' for the trap effort data:
+All files follow this format, with the Date file as an example. Just sub out 'Date' for 'moon' with the moon illumination data and 'effort' for the trap effort data:
 | Column       | Type    | Description                                                                                                      |
 | ------------ | ------- | ---------------------------------------------------------------------------------------------------------------- |
 | Site         | numeric | The identity/name of each trapping plot.                                                                         |
-| jDate_SP21_1 | numeric | The Julian Date of the 1st night of trapping during spring 2021                                                  |
-| jDate_SP21_2 | numeric | The Julian Date of the 2nd night of trapping during spring 2021                                                  |
-| jDate_SP21_3 | numeric | The Julian Date of the 3rd night of trapping during spring 2021                                                  |
-| jDate_SU21_1 | numeric | The Julian Date of the 1st night of trapping during summer 2021                                                  |
+| Date_SP21_1 | numeric | The ordinal date of the 1st night of trapping during spring 2021                                                  |
+| Date_SP21_2 | numeric | The ordinal date of the 2nd night of trapping during spring 2021                                                  |
+| Date_SP21_3 | numeric | The ordinal date of the 3rd night of trapping during spring 2021                                                  |
+| Date_SU21_1 | numeric | The ordinal date of the 1st night of trapping during summer 2021                                                  |
 | ... | numeric | ...                                                |
-| jDate_y_x  | numeric | The Julian Date of the x night of trapping during y sampling period                                                 |
+| Date_y_x  | numeric | The ordinal date of the x night of trapping during y sampling period                                                 |
 
 <h3>functions</h3>
 
