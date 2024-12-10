@@ -33,10 +33,6 @@ range(data_list$PC1)
 mean(data_list$contag)
 ##### Persistence (phi[j,t]) #####
 ##### Cats #####
-# grab quantiles of cat occupancy across all sites
-quantile(mc$cat)
-# 0%          25%          50%          75%         100% 
-# 0.00       0.08         0.21         0.35          0.99
 predV_cat3 <- cbind(1,                                              # intercept                     
                       seq(-3.77, 1.92,length.out=200),              # PC1
                       1,                                            # cats present
@@ -59,35 +55,6 @@ prob_phi <- apply(pred_phi,
                   c(2),
                   logit2prob)
 truePhi_cat3 <- apply(
-  prob_phi,
-  2,
-  quantile,
-  probs = c(0.025,0.25,0.5,0.75,0.975),
-  (na.rm = TRUE)
-)
-
-predV_cat2 <- cbind(1,                                              # intercept                     
-                    seq(-3.77, 1.92,length.out=200),              # PC1
-                    1,                                            # cats present
-                    mean(mc$fox),                                 # fox; set to mean occupancy across all sites
-                    seq(-3.77, 1.92,length.out=200)*0.5,         # PC1*cat interaction
-                    seq(-3.77, 1.92,length.out=200)*mean(mc$fox), # PC1*fox interaction
-                    mean(data_list$contag)                          # contagion; set to mean
-)
-predV_cat2 <- t(predV_cat2)
-# create the matrix of the coefficients from the model
-pred_phi <- array(
-  NA,
-  dim = c(
-    nrow(mc$phi0),
-    ncol(predV_cat2)
-  )
-)
-pred_phi <- cbind(mc$phi0[,1],mc$phi1[,1],mc$phi2[,1],mc$phi3[,1],mc$phi4[,1],mc$phi5[,1],mc$phi6[,1]) %*% predV_cat2
-prob_phi <- apply(pred_phi,
-                  c(2),
-                  logit2prob)
-truePhi_cat2 <- apply(
   prob_phi,
   2,
   quantile,
@@ -129,11 +96,6 @@ datC <- rbind(data.frame(group = "Pr = 0.75",
                          phi = truePhi_cat3[3,],
                          upper = truePhi_cat3[5,],
                          lower = truePhi_cat3[1,]),
-              data.frame(group = "Pr = 0.50",
-                         PC1 = seq(-3.77, 1.92,length.out=200),
-                         phi = truePhi_cat2[3,],
-                         upper = truePhi_cat2[5,],
-                         lower = truePhi_cat2[1,]),
               data.frame(group = "Pr = 0.25",
                          PC1 = seq(-3.77, 1.92,length.out=200),
                          phi = truePhi_cat0[3,],
@@ -142,9 +104,9 @@ datC <- rbind(data.frame(group = "Pr = 0.75",
               )
 p1 <- ggplot(datC, aes(x=PC1, y=phi)) +
   geom_ribbon(aes(ymin=lower, ymax=upper, fill=group), alpha=.3, show.legend=FALSE) +
-  scale_fill_manual(values = c("#5cae63","#999999","#986eac")) +
+  scale_fill_manual(values = c("#5cae63","#986eac")) +
   geom_line(aes(color=group), show.legend=FALSE) +
-  scale_color_manual(values = c("#5cae63","#999999","#986eac")) +
+  scale_color_manual(values = c("#5cae63","#986eac")) +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(limits = c(0,1), expand = c(0,0)) +
   labs(x="", y="Persistence Probability", color="", linewidth="") +
@@ -153,15 +115,12 @@ p1 <- ggplot(datC, aes(x=PC1, y=phi)) +
         axis.text=element_text(size=7), axis.title.y=element_text(size=9), axis.title.x = element_blank())
 
 ##### Foxes #####
-quantile(mc$fox)
-# 0%         25%         50%         75%        100% 
-# 0.00      0.15        0.27        0.46        0.99 
 predV_fox3 <- cbind(1,                                            # intercept                     
                     seq(-3.77, 1.92,length.out=200),              # PC1
                     mean(mc$cat),                                 # cat; set to mean occupancy across all sites
                     1,                                            # fox; present
                     seq(-3.77, 1.92,length.out=200)*mean(mc$cat), # PC1*cat interaction
-                    seq(-3.77, 1.92,length.out=200)*0.75,            # PC1*fox interaction
+                    seq(-3.77, 1.92,length.out=200)*0.75,         # PC1*fox interaction
                     mean(data_list$contag)                        # contagion; set to mean
 )
 predV_fox3 <- t(predV_fox3)
@@ -185,41 +144,12 @@ truePhi_fox3 <- apply(
   (na.rm = TRUE)
 )
 
-predV_fox2 <- cbind(1,                                            # intercept                     
-                    seq(-3.77, 1.92,length.out=200),              # PC1
-                    mean(mc$cat),                                 # cat; set to mean occupancy across all sites
-                    0,                                            # fox; absent
-                    seq(-3.77, 1.92,length.out=200)*mean(mc$cat), # PC1*cat interaction
-                    seq(-3.77, 1.92,length.out=200)*0.5,            # PC1*fox interaction
-                    mean(data_list$contag)                        # contagion; set to mean
-)
-predV_fox2 <- t(predV_fox2)
-# create the matrix of the coefficients from the model
-pred_phi <- array(
-  NA,
-  dim = c(
-    nrow(mc$phi0),
-    ncol(predV_fox2)
-  )
-)
-pred_phi <- cbind(mc$phi0[,1],mc$phi1[,1],mc$phi2[,1],mc$phi3[,1],mc$phi4[,1],mc$phi5[,1],mc$phi6[,1]) %*% predV_fox2
-prob_phi <- apply(pred_phi,
-                  c(2),
-                  logit2prob)
-truePhi_fox2 <- apply(
-  prob_phi,
-  2,
-  quantile,
-  probs = c(0.025,0.25,0.5,0.75,0.975),
-  (na.rm = TRUE)
-)
-
 predV_fox1 <- cbind(1,                                            # intercept                     
                     seq(-3.77, 1.92,length.out=200),              # PC1
                     mean(mc$cat),                                 # cat; set to mean occupancy across all sites
                     0,                                            # fox; absent
                     seq(-3.77, 1.92,length.out=200)*mean(mc$cat), # PC1*cat interaction
-                    seq(-3.77, 1.92,length.out=200)*0.25,            # PC1*fox interaction
+                    seq(-3.77, 1.92,length.out=200)*0.25,         # PC1*fox interaction
                     mean(data_list$contag)                        # contagion; set to mean
 )
 predV_fox1 <- t(predV_fox1)
@@ -248,11 +178,6 @@ datF <- rbind(data.frame(group = "Pr = 0.75",
                         phi = truePhi_fox3[3,],
                         upper = truePhi_fox3[5,],
                         lower = truePhi_fox3[1,]),
-              data.frame(group = "Pr = 0.50",
-                         PC1 = seq(-3.77, 1.92,length.out=200),
-                         phi = truePhi_fox2[3,],
-                         upper = truePhi_fox2[5,],
-                         lower = truePhi_fox2[1,]),
              data.frame(group = "Pr = 0.25",
                         PC1 = seq(-3.77, 1.92,length.out=200),
                         phi = truePhi_fox1[3,],
@@ -261,9 +186,9 @@ datF <- rbind(data.frame(group = "Pr = 0.75",
 )
 p2<-ggplot(datF, aes(x=PC1, y=phi)) +
   geom_ribbon(aes(ymin=lower, ymax=upper, fill=group), alpha=.3, show.legend=FALSE) +
-  scale_fill_manual(values = c("#5cae63","#999999","#986eac")) +
+  scale_fill_manual(values = c("#5cae63","#986eac")) +
   geom_line(aes(color=group), show.legend=FALSE) +
-  scale_color_manual(values = c("#5cae63","#999999","#986eac")) +
+  scale_color_manual(values = c("#5cae63","#986eac")) +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(limits = c(0,1), expand = c(0,0)) +
   labs(x="", y="", color="", linewidth="") +
@@ -274,7 +199,7 @@ p2<-ggplot(datF, aes(x=PC1, y=phi)) +
 # empty plot for legend
 p4 <- ggplot(datF, aes(x=PC1, y=phi))+
   geom_line(aes(color=group)) +
-  scale_color_manual(values = c("#5cae63","#999999","#986eac"), name = "Predator\nOccupancy\nProbability") +
+  scale_color_manual(values = c("#5cae63","#986eac"), name = "Predator\nOccupancy\nProbability") +
   theme_bw() +
   theme(legend.position = c(0.5,0.5), legend.title = element_text(size=9), legend.background=element_blank(),
         legend.text = element_text(size=6))
@@ -411,7 +336,7 @@ predV <- seq(-1.343997, 1.474745, length.out = 200)
 pred_mat <- cbind(
   1,
   predV,
-  0,  # mean of scale(jDate)
+  0,  # mean of scale(Date)
   0   # mean of scale(effort)
 )
 pred_mat <- t(pred_mat)
@@ -461,8 +386,8 @@ p1 <- ggplot(moon, aes(x=moon, y=p)) +
   theme_bw() +
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
         axis.text=element_text(size=7), axis.title=element_text(size=9))
-##### Julian Date #####
-# generate a sequence of Julian date values
+##### Date #####
+# generate a sequence of date values
 # [1] -1.551832  1.596653
 predV <- seq(-1.6, 1.6, length.out = 200)
 
@@ -505,16 +430,16 @@ prob_p <- apply(
 )
 
 ## Graphing
-range(jDate_long$jDate)
+range(Date_long$Date)
 # [1] 101 310
 
-jDate <- rbind(data.frame(jDate = seq(101, 310, length.out = 200),
+Date <- rbind(data.frame(Date = seq(101, 310, length.out = 200),
                           p = prob_p[3,],
                           upper = prob_p[5,],
                           lower = prob_p[1,])
 )
 
-p2 <- ggplot(jDate, aes(x=jDate, y=p)) +
+p2 <- ggplot(Date, aes(x=Date, y=p)) +
   geom_ribbon(aes(ymin=lower, ymax=upper), alpha=.5, show.legend=FALSE) +
   geom_line(aes(), show.legend=FALSE) +
   scale_x_continuous(expand = c(0,0)) +
@@ -621,10 +546,8 @@ dat <- rbind(data.frame(group = "Cat",
                         H = fox[,3]))
 
 p5<-ggplot(dat, aes(x=x, y=M, color=group)) +
-  #geom_pointrange(aes(ymin=L, ymax=H), show.legend=FALSE) +
   geom_point() +
   geom_smooth(method = 'lm', aes(fill=group), show.legend = FALSE) +
-  #scale_color_manual(values = c("#000000")) +
   scale_y_continuous(limits = c(0,1), expand = c(0,0)) +
   scale_x_continuous(expand = c(0,0)) +
   labs(x="PC1", y="Predator Occupancy", size="", color="") +
