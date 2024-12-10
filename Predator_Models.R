@@ -3,7 +3,7 @@
 #    Multi-Species Autologistic Occupancy Model for Determining Average        #
 #    Site Occupancy of Carnivores in Iowa City, IA                             #
 #                                                                              #
-#    Last Updated: 07 Jun 2024                                                 #
+#    Last Updated: 09 Dec 2024                                                 #
 #                                                                              #
 ################################################################################
 # This script prepares the data and runs an autologistic multi-species occupancy
@@ -344,7 +344,7 @@ colnames(occuSitePreds) <- c("camera","cat.mu","cat.sd","coyote.mu","coyote.sd",
                              "fox.mu","fox.sd","mink.mu","mink.sd")
 write.csv(occuSitePreds, "./data/modeledOccu_Predators.csv")
 
-#### Additional Calculations (Cat Detection by Season, Coyote/Fox Co-occurrence & Impervious Relationship ####
+#### Additional Calculations (Coyote/Fox + Coyote/Mink Co-occurrence & Impervious Relationship) ####
 # Generating a matrix that will contain values for predicting. This includes our sequence of
 # contag values, and adding a row of 1's for the intercept & other predictor values
 predV <- c(1,2,3,4)
@@ -517,14 +517,45 @@ coyFox <- rbind(data.frame(imperv = seq(-1.15, 2.47,length.out=200),
                             state = "Actual Co-occurrence")
 )
 
-ggplot(coyFox, aes(x=imperv, y=psi)) +
+p1<-ggplot(coyFox, aes(x=imperv, y=psi)) +
   geom_ribbon(aes(ymin=lower, ymax=upper, fill=state), alpha=.3, show.legend=FALSE) +
   scale_fill_manual(values=c("gray30","gray60"), guide = "none") +
   geom_line(aes(color=state, linetype=state), linewidth=1.05, show.legend = FALSE) +
   scale_color_manual(values=c("gray30","gray60"), guide = "none") +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(limits = c(0,1), expand = c(0,0)) +
-  labs(title="", x="", y="", linetype="") +
+  labs(title="Coyote x Fox", x="", y="Co-occurrence Probability", linetype="") +
   theme_bw() +
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
         axis.text=element_text(size=10))
+                         
+  coyMink <- rbind(data.frame(imperv = seq(0, 55,length.out=200),
+                           psi = ((trueProb[3,,3] + trueProb[3,,6] + trueProb[3,,9] + trueProb[3,,10] + trueProb[3,,12])*(trueProb[3,,5] + trueProb[3,,8] + trueProb[3,,9] + trueProb[3,,11] + trueProb[3,,12])),
+                           upper = ((trueProb[5,,3] + trueProb[5,,6] + trueProb[5,,9] + trueProb[5,,10] + trueProb[5,,12])*(trueProb[5,,5] + trueProb[5,,8] + trueProb[5,,9] + trueProb[5,,11] + trueProb[5,,12])),
+                           lower = ((trueProb[1,,3] + trueProb[1,,6] + trueProb[1,,9] + trueProb[1,,10] + trueProb[1,,12])*(trueProb[1,,5] + trueProb[1,,8] + trueProb[1,,9] + trueProb[1,,11] + trueProb[1,,12])),
+                           state = "Expected"),
+                data.frame(imperv = seq(0, 55,length.out=200),
+                           psi = (trueProb[3,,10] + trueProb[3,,12]) / (trueProb[3,,3] + trueProb[3,,6] + trueProb[3,,9] + trueProb[3,,10] + trueProb[3,,12]),
+                           lower = (trueProb[1,,10] + trueProb[1,,12]) / (trueProb[1,,3] + trueProb[1,,6] + trueProb[1,,9] + trueProb[1,,10] + trueProb[1,,12]),
+                           upper = (trueProb[5,,10] + trueProb[5,,12]) / (trueProb[5,,3] + trueProb[5,,6] + trueProb[5,,9] + trueProb[5,,10] + trueProb[5,,12]),
+                           state = "Actual")
+)
+
+p2<-ggplot(coyMink, aes(x=imperv, y=psi)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=state), alpha=.3, show.legend=FALSE) +
+  scale_fill_manual(values=c("gray30","gray60"), guide = "none") +
+  geom_line(aes(color=state, linetype=state), linewidth=1.05) +
+  scale_color_manual(values=c("gray30","gray60"), guide = "none") +
+  scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(limits = c(0,1), expand = c(0,0)) +
+  labs(title="Coyote × Mink", x="", y="", linetype="") +
+  theme_bw() +
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+        axis.text.x=element_text(size=10), axis.text.y = element_blank(),
+        legend.position = "inside", legend.position.inside=c(0.8,0.93),
+        legend.text = element_text(size=8), legend.background = element_blank())
+
+jpeg("./results/S1.jpeg", width = 6, height = 4, units = 'in', res = 300)
+gridExtra::grid.arrange(p3,p1,p2, ncol=3, widths=c(1.95,2),
+                        bottom=textGrob("Impervious Cover (%)", gp=gpar(fontsize=10)))
+dev.off()
